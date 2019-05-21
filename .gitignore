@@ -1,0 +1,5 @@
+data/mtgprice/*.dta
+data/edhrec/*.dta
+raw/*
+*.tmp
+*.bak

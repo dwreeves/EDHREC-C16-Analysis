@@ -1,0 +1,1009 @@
+
+. 
+. do "${CODE_DIR}/01 - Import data.do"
+
+. /*~ 01 - Import data.do ~*/
+. 
+. /*******************************************************************************
+> * 01a. Import and prepare EDHREC Data
+> *******************************************************************************/
+. 
+. /* Import individual files */
+. foreach cmdr in $COMMANDERS {
+  2.         import delimited "${RAW_DIR}/`cmdr'.csv", delimiter("|") clear
+  3.         rename v2 card
+  4.         gen commander = "`cmdr'"
+  5.         save "${DATA_DIR}/edhrec/`cmdr'.dta", replace
+  6. }
+(2 vars, 141203 obs)file C:/Users/Daniel/Documents/Stata/C16 Analysis/data/edhrec/atraxa.dta saved
+(2 vars, 98962 obs)file C:/Users/Daniel/Documents/Stata/C16 Analysis/data/edhrec/breya.dta saved
+(2 vars, 54011 obs)file C:/Users/Daniel/Documents/Stata/C16 Analysis/data/edhrec/kynaios.dta saved
+(2 vars, 49538 obs)file C:/Users/Daniel/Documents/Stata/C16 Analysis/data/edhrec/saskia.dta saved
+(2 vars, 72723 obs)file C:/Users/Daniel/Documents/Stata/C16 Analysis/data/edhrec/yidris.dta saved
+
+. clear
+
+. 
+. /* Combine */
+. foreach cmdr in $COMMANDERS {
+  2.         append using "${DATA_DIR}/edhrec/`cmdr'.dta"
+  3. }
+(note: variable v1 was str81, now str83 to accommodate using data's values)
+(note: variable commander was str6, now str7 to accommodate using data's values)
+(note: variable v1 was str83, now str85 to accommodate using data's values)
+
+. 
+. /* Trim down deck link, then encode */
+. replace v1 = trim(substr(v1,strlen("http://tappedout.net/mtg-decks/")+1,.))
+(416437 real changes made)
+
+. compress v1
+  v1 was str85 now str54
+  (12,909,547 bytes saved)
+
+. encode v1, gen(deck)
+
+. drop v1
+
+. 
+. /* Observe whether a deck has COB or MC */
+. sort deck card
+
+. by deck: gen byte firstobs_deck = _n==1
+
+. by deck: egen byte has_cobrass = max(card=="City of Brass")
+
+. by deck: egen byte has_mconflu = max(card=="Mana Confluence")
+
+. gen byte has_either = has_cobrass | has_mconflu
+
+. gen byte has_both = has_cobrass & has_mconflu
+
+. 
+. /* Save */
+. order deck commander card
+
+. save "${DECKS_DTA}", replace
+file C:/Users/Daniel/Documents/Stata/C16 Analysis/data/edhrec/all_decks.dta saved
+
+. 
+. /*******************************************************************************
+> * 01b. Import Price Data
+> *******************************************************************************/
+. 
+. import excel "${CARD_PRICES_RAW}", sheet("Sheet1") firstrow clear
+
+. 
+. /* Consistent names for merge */
+. rename CardName card
+
+. rename FairTradePrice price
+
+. 
+. /* Drop unnecessary data */
+. drop BestBuylistPrice
+
+. replace card=substr(card,1,strlen(card)-4) if match(card,"*(?)")
+(1464 real changes made)
+
+. drop if inlist(card,"Swamp","Forest","Mountain","Island","Plains")
+(1105 observations deleted)
+
+. drop if price==0
+(939 observations deleted)
+
+. 
+. /* Lowest price */
+. sort card price
+
+. by card : gen lowestprice = _n==1
+
+. drop if !lowestprice
+(9406 observations deleted)
+
+. drop lowestprice
+
+. 
+. /* Save */
+. save "${CARD_PRICES_DTA}", replace
+file C:/Users/Daniel/Documents/Stata/C16 Analysis/data/mtgprice/cardprices.dta saved
+
+. 
+. /*******************************************************************************
+> * 01c. Import Precon Deck Lists
+> *******************************************************************************/
+. 
+. /* These were imported manually and saved as .dta's in /data/precons from
+>    magic.wizards.com . An example is provided for Yidris if cleaning the lists
+>    up in the Stata console:
+> */
+. 
+. *drop if !inlist(substr(var1,1,1),"1","3","4","5","7")
+. *replace var1 = substr(var1,3,.)
+. *gen commander = "yidris"
+. *rename var1 card
+. *save precon_yidris.dta, replace
+. 
+end of do-file
+
+. do "${CODE_DIR}/02 - Precon overlap analysis.do"
+
+. /*~ 02 - Precon Overlap Analysis.do ~*/
+. 
+. /*******************************************************************************
+> ** 02a. Prepare data
+> *******************************************************************************/
+. 
+. use "${DECKS_DTA}", clear
+
+. 
+. /* Merge with Precon Deck Lists */
+. gen in_precon = 0
+
+. foreach cmdr in $COMMANDERS {
+  2.         merge m:1 commander card ///
+>                 using "${DATA_DIR}/precons/precon_`cmdr'.dta", ///
+>                 gen(_merge_`cmdr')
+  3.         replace in_precon = 1 if commander=="`cmdr'" & _merge_`cmdr'==3
+  4.         drop _merge_`cmdr'
+  5. }
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       368,535
+        from master                   368,535  (_merge_atraxa==1)
+        from using                          0  (_merge_atraxa==2)
+
+    matched                            47,902  (_merge_atraxa==3)
+    -----------------------------------------
+(47902 real changes made)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       375,844
+        from master                   375,843  (_merge_breya==1)
+        from using                          1  (_merge_breya==2)
+
+    matched                            40,594  (_merge_breya==3)
+    -----------------------------------------
+(40594 real changes made)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       394,218
+        from master                   394,218  (_merge_kynaios==1)
+        from using                          0  (_merge_kynaios==2)
+
+    matched                            22,220  (_merge_kynaios==3)
+    -----------------------------------------
+(22220 real changes made)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       397,971
+        from master                   397,970  (_merge_saskia==1)
+        from using                          1  (_merge_saskia==2)
+
+    matched                            18,468  (_merge_saskia==3)
+    -----------------------------------------
+(18468 real changes made)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       391,280
+        from master                   391,280  (_merge_yidris==1)
+        from using                          0  (_merge_yidris==2)
+
+    matched                            25,159  (_merge_yidris==3)
+    -----------------------------------------
+(25159 real changes made)
+
+. 
+. /* Measure Overlap */
+. sort deck card
+
+. by deck: egen int precon_overlap = total(in_precon)
+
+. gen int precon_diff = 100-precon_overlap
+
+. 
+. /*******************************************************************************
+> ** 02b. Figures
+> *******************************************************************************/
+. 
+. /* Commander specific summary stats */
+. summ precon_diff if firstobs_deck & commander=="atraxa", detail
+
+                         precon_diff
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%           18             18
+ 5%           31             18
+10%           40             18       Obs                1565
+25%           57             18       Sum of Wgt.        1565
+
+50%           74                      Mean           69.39169
+                        Largest       Std. Dev.      19.55779
+75%           85             98
+90%           90             98       Variance        382.507
+95%           92             99       Skewness      -.7915446
+99%           96             99       Kurtosis       2.725346
+
+. summ precon_diff if firstobs_deck & commander=="breya", detail
+
+                         precon_diff
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%           16             16
+ 5%           26             16
+10%           36             16       Obs                1083
+25%           49             16       Sum of Wgt.        1083
+
+50%           65                      Mean           62.51708
+                        Largest       Std. Dev.      19.37886
+75%           78             97
+90%           86             97       Variance       375.5401
+95%           90             99       Skewness      -.4652771
+99%           96            100       Kurtosis       2.508558
+
+. summ precon_diff if firstobs_deck & commander=="kynaios", detail
+
+                         precon_diff
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%           17             17
+ 5%           29             17
+10%           36             17       Obs                 623
+25%           51             17       Sum of Wgt.         623
+
+50%           69                      Mean           64.33387
+                        Largest       Std. Dev.      19.40226
+75%           80             95
+90%           86             96       Variance       376.4478
+95%           88             96       Skewness      -.6388328
+99%           93             96       Kurtosis       2.511855
+
+. summ precon_diff if firstobs_deck & commander=="saskia", detail
+
+                         precon_diff
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%           14             14
+ 5%           24             14
+10%           34             14       Obs                 553
+25%           55             14       Sum of Wgt.         553
+
+50%           73                      Mean           66.60398
+                        Largest       Std. Dev.      20.41154
+75%           82             96
+90%           87             97       Variance       416.6309
+95%           90             98       Skewness      -.9282645
+99%           94            100       Kurtosis       2.990984
+
+. summ precon_diff if firstobs_deck & commander=="yidris", detail
+
+                         precon_diff
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%           17             17
+ 5%           29             17
+10%           37             17       Obs                 818
+25%           57             17       Sum of Wgt.         818
+
+50%           76                      Mean           69.24328
+                        Largest       Std. Dev.      20.03176
+75%           85             95
+90%           90             95       Variance       401.2712
+95%           92             95       Skewness      -.9501466
+99%           94             96       Kurtosis       2.976799
+
+. 
+. /* Commander specific probits */
+. foreach cmdr in $COMMANDERS {
+  2.         probit has_either precon_overlap if commander=="`cmdr'"
+  3. }
+
+Iteration 0:   log likelihood = -92815.884  
+Iteration 1:   log likelihood = -81845.981  
+Iteration 2:   log likelihood = -81712.441  
+Iteration 3:   log likelihood = -81712.268  
+Iteration 4:   log likelihood = -81712.268  
+
+Probit regression                                 Number of obs   =     141203
+                                                  LR chi2(1)      =   22207.23
+                                                  Prob > chi2     =     0.0000
+Log likelihood = -81712.268                       Pseudo R2       =     0.1196
+
+--------------------------------------------------------------------------------
+    has_either |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+----------------------------------------------------------------
+precon_overlap |  -.0307723   .0002275  -135.26   0.000    -.0312182   -.0303264
+         _cons |   .5070334   .0068623    73.89   0.000     .4935834    .5204833
+--------------------------------------------------------------------------------
+
+Iteration 0:   log likelihood = -64758.864  
+Iteration 1:   log likelihood = -55621.397  
+Iteration 2:   log likelihood = -55515.292  
+Iteration 3:   log likelihood = -55515.147  
+Iteration 4:   log likelihood = -55515.147  
+
+Probit regression                                 Number of obs   =      98962
+                                                  LR chi2(1)      =   18487.43
+                                                  Prob > chi2     =     0.0000
+Log likelihood = -55515.147                       Pseudo R2       =     0.1427
+
+--------------------------------------------------------------------------------
+    has_either |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+----------------------------------------------------------------
+precon_overlap |  -.0336296   .0002727  -123.33   0.000    -.0341641   -.0330952
+         _cons |   .8058595    .009935    81.11   0.000     .7863872    .8253319
+--------------------------------------------------------------------------------
+
+Iteration 0:   log likelihood = -29937.688  
+Iteration 1:   log likelihood = -27763.514  
+Iteration 2:   log likelihood = -27739.925  
+Iteration 3:   log likelihood = -27739.918  
+Iteration 4:   log likelihood = -27739.918  
+
+Probit regression                                 Number of obs   =      54011
+                                                  LR chi2(1)      =    4395.54
+                                                  Prob > chi2     =     0.0000
+Log likelihood = -27739.918                       Pseudo R2       =     0.0734
+
+--------------------------------------------------------------------------------
+    has_either |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+----------------------------------------------------------------
+precon_overlap |  -.0230542   .0003727   -61.86   0.000    -.0237846   -.0223237
+         _cons |   .0485783   .0128922     3.77   0.000       .02331    .0738466
+--------------------------------------------------------------------------------
+
+Iteration 0:   log likelihood =  -31741.72  
+Iteration 1:   log likelihood = -28227.586  
+Iteration 2:   log likelihood =  -28166.22  
+Iteration 3:   log likelihood = -28166.066  
+Iteration 4:   log likelihood = -28166.066  
+
+Probit regression                                 Number of obs   =      49538
+                                                  LR chi2(1)      =    7151.31
+                                                  Prob > chi2     =     0.0000
+Log likelihood = -28166.066                       Pseudo R2       =     0.1126
+
+--------------------------------------------------------------------------------
+    has_either |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+----------------------------------------------------------------
+precon_overlap |  -.0291432   .0003853   -75.64   0.000    -.0298984    -.028388
+         _cons |   .4689985   .0124492    37.67   0.000     .4445986    .4933984
+--------------------------------------------------------------------------------
+
+Iteration 0:   log likelihood = -48900.867  
+Iteration 1:   log likelihood = -41198.154  
+Iteration 2:   log likelihood = -41038.714  
+Iteration 3:   log likelihood = -41038.706  
+Iteration 4:   log likelihood = -41038.706  
+
+Probit regression                                 Number of obs   =      72723
+                                                  LR chi2(1)      =   15724.32
+                                                  Prob > chi2     =     0.0000
+Log likelihood = -41038.706                       Pseudo R2       =     0.1608
+
+--------------------------------------------------------------------------------
+    has_either |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+----------------------------------------------------------------
+precon_overlap |  -.0373541   .0003469  -107.68   0.000    -.0380341   -.0366742
+         _cons |   .7592554   .0099831    76.05   0.000     .7396888     .778822
+--------------------------------------------------------------------------------
+
+. 
+. /* PDF of decks by how much they overlap with the precon */
+. bysort precon_overlap : egen totdecks = total(firstobs_deck)
+
+. count if firstobs_deck
+ 4642
+
+. replace totdecks = totdecks/`r(N)'
+(416437 real changes made)
+
+. 
+. /* Actual and estimated probability of having either */
+. bysort precon_overlap : egen avg_has_either = mean(has_either)
+(2 missing values generated)
+
+. probit has_either precon_overlap
+
+Iteration 0:   log likelihood = -270099.19  
+Iteration 1:   log likelihood = -236880.25  
+Iteration 2:   log likelihood = -236425.23  
+Iteration 3:   log likelihood =  -236424.5  
+Iteration 4:   log likelihood =  -236424.5  
+
+Probit regression                                 Number of obs   =     416437
+                                                  LR chi2(1)      =   67349.37
+                                                  Prob > chi2     =     0.0000
+Log likelihood =  -236424.5                       Pseudo R2       =     0.1247
+
+--------------------------------------------------------------------------------
+    has_either |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+----------------------------------------------------------------
+precon_overlap |  -.0308894   .0001316  -234.80   0.000    -.0311472   -.0306315
+         _cons |   .5472509   .0042524   128.69   0.000     .5389164    .5555853
+--------------------------------------------------------------------------------
+
+. predict est_has_either
+(option pr assumed; Pr(has_either))
+
+. 
+. /* Actual and estimated probability of having both */
+. bysort precon_overlap : egen avg_has_both = mean(has_both)
+(2 missing values generated)
+
+. probit has_both precon_overlap
+
+Iteration 0:   log likelihood =  -200687.3  
+Iteration 1:   log likelihood = -174137.58  
+Iteration 2:   log likelihood = -172837.53  
+Iteration 3:   log likelihood = -172834.81  
+Iteration 4:   log likelihood = -172834.81  
+
+Probit regression                                 Number of obs   =     416437
+                                                  LR chi2(1)      =   55704.98
+                                                  Prob > chi2     =     0.0000
+Log likelihood = -172834.81                       Pseudo R2       =     0.1388
+
+--------------------------------------------------------------------------------
+      has_both |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------+----------------------------------------------------------------
+precon_overlap |  -.0355868   .0001791  -198.67   0.000    -.0359378   -.0352357
+         _cons |   .0772699   .0049019    15.76   0.000     .0676624    .0868774
+--------------------------------------------------------------------------------
+
+. predict est_has_both
+(option pr assumed; Pr(has_both))
+
+. 
+. /*******************************************************************************
+> ** 02c. Tables
+> *******************************************************************************/
+. 
+. tempvar cmdr_proper
+
+. gen `cmdr_proper' = proper(commander)
+
+. 
+. #delimit ;
+delimiter now ;
+. histogram
+>         precon_overlap if firstobs_deck,
+>         by(`cmdr_proper',
+>                 note("Source: EDHREC.com, TappedOut.net, and author's calculations")
+>                 graphregion(color(gs15))
+>                 title("Distribution of Decklist Overlaps with Precons")
+>                 subtitle("for C16 Commanders")
+>                 total
+>         )
+>         xtitle("Number of cards that overlap with precon" " ") 
+>         width(1)
+>         bgcolor(gs15)
+>         color(gs11)
+>         subtitle(, bcolor(gs11))
+> ;
+
+.         graph export "${OUTPUT_DIR}/analysis_precon_overlap.png", replace;
+(file C:/Users/Daniel/Documents/Stata/C16 Analysis/output/analysis_precon_overlap.png written in PNG format)
+
+. twoway
+>         (bar totdecks precon_overlap if firstobs_deck,
+>                 yaxis(1) yscale(off alt) color(gs14)
+>         )
+>         (line est_has_either precon_overlap if firstobs_deck,
+>                 yaxis(2) color(navy)
+>         )
+>         (line est_has_both precon_overlap if firstobs_deck,
+>                 yaxis(2) color(maroon)
+>         )
+>         (scatter avg_has_either precon_overlap if firstobs_deck,
+>                 yaxis(2) mcolor(navy) msymbol(o) msize(0.8)
+>         )
+>         (scatter avg_has_both precon_overlap if firstobs_deck,
+>                 yaxis(2) mcolor(maroon) msymbol(o) msize(0.8)
+>         ),
+>         title("Probability of Having City of Brass and/or Mana Confluence")
+>         subtitle("as a Function of Overlap with Precons")
+>         xtitle("Number of cards that overlap with precon")
+>         ytitle("", axis(2))
+>         ylabel(0 "0%" .2 "20%" .4 "40%" .6 "60%" .8 "80%" 1 "100%", axis(2))
+>         legend(
+>                 label(1 "Sample density")
+>                 label(2 "Has either")
+>                 label(3 "Has both")
+>                 order(2 3 1)
+>         )
+>         graphregion(color(gs15))
+>         note("Source: EDHREC.com, TappedOut.net, and author's calculations")
+> ;
+
+. graph export "${OUTPUT_DIR}/analysis_precon_overlap_5c_pains.png", replace;
+(file C:/Users/Daniel/Documents/Stata/C16 Analysis/output/analysis_precon_overlap_5c_pains.png written in PNG 
+> format)
+
+. #delimit cr
+delimiter now cr
+. 
+. 
+end of do-file
+
+. do "${CODE_DIR}/03 - Price analysis.do"
+
+. /*~ 03 - Price Analysis.do ~*/
+. 
+. /*******************************************************************************
+> ** 03a. Prepare data
+> *******************************************************************************/
+. 
+. use "${DECKS_DTA}", clear
+
+. merge m:1 card using "${CARD_PRICES_DTA}", gen(_merge_price) keep(1 3)
+(note: variable card was str33, now str44 to accommodate using data's values)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                        20,592
+        from master                    20,592  (_merge_price==1)
+        from using                          0  (_merge_price==2)
+
+    matched                           395,845  (_merge_price==3)
+    -----------------------------------------
+
+. 
+. /* Price of deck */
+. bysort deck: egen double totalprice = total(price)
+
+. gen double logprice = log(totalprice)/log(10)
+
+. 
+. /*******************************************************************************
+> ** 03b. Analysis
+> *******************************************************************************/
+. 
+. /* Commander specific summary stats */
+. sum totalprice if firstobs_deck & commander=="atraxa", detail
+
+                         totalprice
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%        61.41          56.11
+ 5%        84.92          56.66
+10%       113.23          57.23       Obs                1565
+25%       214.81          58.19       Sum of Wgt.        1565
+
+50%       420.73                      Mean           697.4801
+                        Largest       Std. Dev.      818.3877
+75%       782.39        5389.37
+90%      1896.42        5596.18       Variance       669758.4
+95%      2508.45        5637.92       Skewness       2.617638
+99%      3895.48        5847.49       Kurtosis       11.24273
+
+. sum totalprice if firstobs_deck & commander=="breya", detail
+
+                         totalprice
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%        55.63          36.88
+ 5%        73.54          49.09
+10%       103.91          52.67       Obs                1082
+25%       185.86          52.72       Sum of Wgt.        1082
+
+50%      323.195                      Mean           618.4454
+                        Largest       Std. Dev.      884.7759
+75%       595.81        5412.58
+90%      1441.14        5708.85       Variance       782828.4
+95%      2485.62        5803.97       Skewness       3.289347
+99%      4723.44        6065.86       Kurtosis         14.977
+
+. sum totalprice if firstobs_deck & commander=="kynaios", detail
+
+                         totalprice
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%         49.8          33.73
+ 5%        59.08          36.68
+10%         77.1           37.1       Obs                 623
+25%       112.93          44.16       Sum of Wgt.         623
+
+50%       209.09                      Mean           348.8039
+                        Largest       Std. Dev.      442.0845
+75%       397.39        3238.85
+90%       672.79        3471.25       Variance       195438.7
+95%       953.77        3536.87       Skewness         3.9118
+99%       2430.3        3716.84       Kurtosis       22.86724
+
+. sum totalprice if firstobs_deck & commander=="saskia", detail
+
+                         totalprice
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%        57.25          43.87
+ 5%        67.39          53.55
+10%        84.95          53.68       Obs                 552
+25%       148.32          56.43       Sum of Wgt.         552
+
+50%       268.95                      Mean           420.4634
+                        Largest       Std. Dev.      415.0149
+75%      534.795        1947.28
+90%       883.68        2263.48       Variance       172237.4
+95%      1341.13        2786.36       Skewness       2.445298
+99%      1852.35        3469.22       Kurtosis       11.77435
+
+. sum totalprice if firstobs_deck & commander=="yidris", detail
+
+                         totalprice
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%        54.11          25.04
+ 5%        64.69          30.66
+10%        83.02          30.99       Obs                 818
+25%       159.79          33.61       Sum of Wgt.         818
+
+50%      338.285                      Mean           710.4365
+                        Largest       Std. Dev.      984.6481
+75%       721.35        4841.77
+90%      2095.14        4900.93       Variance       969531.9
+95%      3139.99        4962.39       Skewness       2.470511
+99%      4628.86        4978.27       Kurtosis       8.771176
+
+. 
+. /* Estimated probabilities of having either or both */
+. probit has_either logprice
+
+Iteration 0:   log likelihood = -270099.19  
+Iteration 1:   log likelihood = -232179.32  
+Iteration 2:   log likelihood = -232059.18  
+Iteration 3:   log likelihood = -232059.17  
+
+Probit regression                                 Number of obs   =     416437
+                                                  LR chi2(1)      =   76080.03
+                                                  Prob > chi2     =     0.0000
+Log likelihood = -232059.17                       Pseudo R2       =     0.1408
+
+------------------------------------------------------------------------------
+  has_either |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+    logprice |   1.367114   .0052945   258.21   0.000     1.356737    1.377492
+       _cons |  -3.943454   .0140898  -279.88   0.000     -3.97107   -3.915838
+------------------------------------------------------------------------------
+
+. predict est_has_either
+(option pr assumed; Pr(has_either))
+
+. 
+. probit has_both logprice
+
+Iteration 0:   log likelihood =  -200687.3  
+Iteration 1:   log likelihood = -170814.71  
+Iteration 2:   log likelihood = -170309.52  
+Iteration 3:   log likelihood = -170309.01  
+Iteration 4:   log likelihood = -170309.01  
+
+Probit regression                                 Number of obs   =     416437
+                                                  LR chi2(1)      =   60756.57
+                                                  Prob > chi2     =     0.0000
+Log likelihood = -170309.01                       Pseudo R2       =     0.1514
+
+------------------------------------------------------------------------------
+    has_both |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+    logprice |   1.363736   .0059686   228.48   0.000     1.352038    1.375435
+       _cons |   -4.52896   .0164635  -275.09   0.000    -4.561228   -4.496692
+------------------------------------------------------------------------------
+
+. predict est_has_both
+(option pr assumed; Pr(has_both))
+
+. 
+. /*******************************************************************************
+> ** 03c. Figures
+> *******************************************************************************/
+. 
+. tempvar cmdr_proper
+
+. gen `cmdr_proper' = proper(commander)
+
+. 
+. local source "Source: EDHREC.com, TappedOut.net, " ///
+>         "MTGPrice.com, and author's calculations"
+
+. 
+. #delimit ;
+delimiter now ;
+. histogram
+>         totalprice if firstobs_deck & totalprice<=1000, by(commander) 
+>         by(
+>                 commander,
+>                 note("`source'")
+>                 graphregion(color(gs15))
+>                 title("Distribution of Decklist Prices (Excluding >$1,000)")
+>                 subtitle("for C16 Commanders")
+>                 total
+>         )
+>         bgcolor(gs15) subtitle(, bcolor(gs11))
+>         xtitle("Total Deck Price" " ")
+>         color(gs11)
+> ;
+
+. graph export "${OUTPUT_DIR}/analysis_price_dist.png", replace;
+(file C:/Users/Daniel/Documents/Stata/C16 Analysis/output/analysis_price_dist.png written in PNG format)
+
+. sort est_has_both;
+
+. twoway
+>         (line est_has_either logprice if firstobs_deck,
+>                 color(blue)
+>         )
+>         (line est_has_both logprice if firstobs_deck,
+>                 color(red)
+>         ),
+>         title("Probability of Having City of Brass and/or Mana Confluence")
+>         subtitle("as a Function of Total Deck Price")
+>         xtitle("Price of deck (log scale)") ///
+>         legend(
+>                 label(1 "Has either")
+>                 label(2 "Has both")
+>                 order(2 3 1)
+>         ) ///
+>         xlabel(1.5 "$32" 2 "$100" 2.5 "$316" 3 "$1,000" 3.5 "$3,162")
+>         ylabel(0 "0%" .2 "20%" .4 "40%" .6 "60%" .8 "80%" 1 "100%")
+>         graphregion(color(gs15))
+>         note("`source'")
+> ;
+
+.         graph export "${OUTPUT_DIR}/analysis_price_function.png", replace;
+(file C:/Users/Daniel/Documents/Stata/C16 Analysis/output/analysis_price_function.png written in PNG format)
+
+. #delimit cr
+delimiter now cr
+. 
+end of do-file
+
+. do "${CODE_DIR}/04 - Degeneracy analysis.do"
+
+. /*~ 04 - Degeneracy analysis.do ~*/
+. 
+. /*******************************************************************************
+> ** 04a. Prepare data
+> *******************************************************************************/
+. 
+. use "${DECKS_DTA}", clear
+
+. 
+. merge m:1 card using "${INFECT_CARDS_DTA}", gen(_merge_infect)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       411,320
+        from master                   411,320  (_merge_infect==1)
+        from using                          0  (_merge_infect==2)
+
+    matched                             5,117  (_merge_infect==3)
+    -----------------------------------------
+
+.         //Manually created file
+. 
+. sort deck
+
+. 
+. /*~~~~~~~~~~~~~~~~~~~~*/
+. /* Generic degeneracy */
+. /*~~~~~~~~~~~~~~~~~~~~*/
+. 
+. tempvar d1 d2 d3 dinfect
+
+. 
+. by deck: egen `d1' = max(card=="Blightsteel Colossus")
+
+. by deck: egen `d2' = max(card=="Doomsday" | card=="Laboratory Maniac")
+
+. by deck: egen `d3' = ///
+>         total( ///
+>                 card=="Mana Crypt" | ///
+>                 card=="Sol Ring" | ///
+>                 card=="Mana Vault" | ///
+>                 card=="Chrome Mox" | ///
+>                 card=="Mox Diamond" | ///
+>                 card=="Mox Opal" | ///
+>                 card=="Lotus Petal")
+
+. replace `d3' = 0 if `d3'<4
+(342310 real changes made)
+
+. replace `d3' = 1 if `d3'>=4
+(23272 real changes made)
+
+. 
+. by deck: egen byte `dinfect' = total(_merge_infect==3)
+
+. replace `dinfect' = `dinfect'>=5 & inlist(commander, "atraxa", "saskia")
+(79197 real changes made)
+
+. 
+. /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+. /* Breya degenerate strategies */
+. /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+. 
+. tempvar d1_breya_a d1_breya_b d1_breya
+
+. tempvar d2_breya_a d2_breya_b d2_breya
+
+. tempvar d3_breya d4_breya
+
+. 
+. by deck: egen byte `d1_breya_a' = ///
+>         max(card=="Worldgorger Dragon")
+
+. by deck: egen byte `d1_breya_b' = ///
+>         total(card=="Animate Dead" | card=="Dance of the Dead" | card=="Necromancy")
+
+. gen byte `d1_breya' = ///
+>         `d1_breya_a' * ceil(`d1_breya_b'/2) * commander=="breya"
+
+. 
+. by deck: egen byte `d2_breya_a' = ///
+>         total(card=="Nim Deathmantle" | card=="Eldrazi Displacer")
+
+. by deck: egen byte `d2_breya_b' = ///
+>         total(card=="Ashnod's Altar" | card=="Krark-Clan Ironworks")
+
+. gen byte `d2_breya' = ///
+>         ceil((`d2_breya_a'+`d2_breya_b')/3) * (commander=="breya")
+
+. 
+. by deck: egen byte `d3_breya' = ///
+>         total(card=="Isochron Scepter" | card=="Dramatic Reversal")
+
+. replace `d3_breya' = 0 if commander!="breya"
+(6382 real changes made)
+
+. replace `d3_breya' = `d3_breya'==2
+(4359 real changes made)
+
+. 
+. by deck: egen byte `d4_breya' = ///
+>         total(card=="Auriok Salvagers" | card=="Lion's Eye Diamond")
+
+. replace `d4_breya' = 0 if commander!="breya"
+(3321 real changes made)
+
+. replace `d4_breya' = `d4_breya'==2
+(6892 real changes made)
+
+. 
+. /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+. /* Yidris degenerate strategies */
+. /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+. 
+. tempvar d1_yidris d2_yidris_a d2_yidris_b d2_yidris
+
+. 
+. by deck: egen `d1_yidris' = ///
+>         max(card=="Aetherflux Reservoir" | card=="Tendrils of Agony")
+
+. replace `d1_yidris' = 0 if commander!="yidris"
+(16687 real changes made)
+
+. 
+. by deck: egen int `d2_yidris_a' = ///
+>         total( ///
+>         card=="Waste Not"| ///
+>         card=="Time Spiral"| ///
+>         card=="Wheel of Fortune"| ///
+>         card=="Windfall"| ///
+>         card=="Wheel of Fate"| ///
+>         card=="Timetwister")
+
+. by deck: egen byte `d2_yidris_b' = max(card=="Notion Thief")
+
+. gen byte `d2_yidris' = ///
+>         ((`d2_yidris_a'>=3) + ///
+>         (`d2_yidris_a'>=4 & `d2_yidris_b')) * (commander=="yidris")
+
+. 
+. /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+. /* Atraxa degenerate strategies */
+. /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+. 
+. tempvar d1_atraxa d2_atraxa_a d2_atraxa_b d2_atraxa
+
+. 
+. 
+. by deck: egen `d1_atraxa' = total(card=="Tezzeret the Seeker"|card=="The Chain Veil")
+
+. replace `d1_atraxa' = 0 if commander!="atraxa"
+(56789 real changes made)
+
+. replace `d1_atraxa' = `d1_atraxa'==2
+(45183 real changes made)
+
+. 
+. by deck: egen `d2_atraxa_a' = max(card=="Doubling Season")
+
+. by deck: egen `d2_atraxa_b' = total( ///
+>         card=="Tamiyo, the Moon Sage" | ///
+>         card=="Tamiyo, Field Researcher" | ///
+>         card=="Narset Transcendent" | ///
+>         card=="Vraska the Unseen" | ///
+>         card=="Jace, Unraveler of Secrets")
+
+. gen `d2_atraxa' = commander=="atraxa" & `d2_atraxa_a' & (`d2_atraxa_b'>=2)
+
+. 
+. /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+. /* Calculate total degeneracy */
+. /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+. 
+. gen byte degenerate = 0
+
+. 
+. replace degenerate = `d1' + `d2' + `d3' ///
+>         + `d1_breya' + `d2_breya' + `d3_breya' + `d4_breya' ///
+>         + `d1_yidris' + `d2_yidris' ///
+>         + `d1_atraxa' + `d2_atraxa' ///
+>         + `dinfect'
+(199309 real changes made)
+
+. 
+. replace degenerate = 5 if degenerate>=5 //Top-coded at 5
+(193 real changes made)
+
+. 
+. /*******************************************************************************
+> ** 04b. Table
+> *******************************************************************************/
+. 
+. log using "${OUTPUT_DIR}/degeneracy.txt", name(degeneracy) text replace
+--------------------------------------------------------------------------------------------------------------
+      name:  degeneracy
+       log:  C:/Users/Daniel/Documents/Stata/C16 Analysis/output/degeneracy.txt
+  log type:  text
+ opened on:  21 May 2019, 16:30:19
+
+. 
+. table degenerate commander if firstobs_deck, ///
+>         c(mean has_either count firstobs_deck) f(%12.3fc) row col
+
+----------------------------------------------------------------------------------------------
+degenerat |                                     commander                                     
+e         |       atraxa         breya       kynaios        saskia        yidris         Total
+----------+-----------------------------------------------------------------------------------
+        0 |        0.263         0.173         0.215         0.316         0.384         0.272
+          |          788           266           517           513           372         2,456
+          | 
+        1 |        0.427         0.298         0.324         0.471         0.308         0.356
+          |          541           430           105            34           273         1,383
+          | 
+        2 |        0.482         0.444         1.000         0.600         0.333         0.443
+          |          222           243             1             5            96           567
+          | 
+        3 |        0.538         0.607                                     0.564         0.588
+          |           13            84                                        39           136
+          | 
+        4 |        1.000         0.745                                     0.750         0.750
+          |            1            47                                        20            68
+          | 
+        5 |                      0.833                                     0.944         0.900
+          |                         12                                        18            30
+          | 
+    Total |        0.353         0.349         0.234         0.328         0.383         0.339
+          |        1,565         1,082           623           552           818         4,640
+----------------------------------------------------------------------------------------------
+
+. 
+. log close degeneracy
+      name:  degeneracy
+       log:  C:/Users/Daniel/Documents/Stata/C16 Analysis/output/degeneracy.txt
+  log type:  text
+ closed on:  21 May 2019, 16:30:20
+--------------------------------------------------------------------------------------------------------------
+
+. 
+end of do-file
+
+. 
+. capture log close master_log
