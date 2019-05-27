@@ -34,7 +34,8 @@ summ precon_diff if firstobs_deck & commander=="yidris", detail
 
 /* Commander specific probits */
 foreach cmdr in $COMMANDERS {
-	probit has_either precon_overlap if commander=="`cmdr'"
+	probit has_either precon_overlap ///
+		if commander=="`cmdr'" & firstobs_deck
 }
 
 /* PDF of decks by how much they overlap with the precon */
@@ -44,12 +45,12 @@ replace totdecks = totdecks/`r(N)'
 
 /* Actual and estimated probability of having either */
 bysort precon_overlap : egen avg_has_either = mean(has_either)
-probit has_either precon_overlap
+probit has_either precon_overlap if firstobs_deck
 predict est_has_either
 
 /* Actual and estimated probability of having both */
 bysort precon_overlap : egen avg_has_both = mean(has_both)
-probit has_both precon_overlap
+probit has_both precon_overlap if firstobs_deck
 predict est_has_both
 
 /*******************************************************************************

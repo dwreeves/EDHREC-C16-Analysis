@@ -300,97 +300,98 @@ end of do-file
 . 
 . /* Commander specific probits */
 . foreach cmdr in $COMMANDERS {
-  2.         probit has_either precon_overlap if commander=="`cmdr'"
+  2.         probit has_either precon_overlap ///
+>                 if commander=="`cmdr'" & firstobs_deck
   3. }
 
-Iteration 0:   log likelihood = -92815.884  
-Iteration 1:   log likelihood = -81845.981  
-Iteration 2:   log likelihood = -81712.441  
-Iteration 3:   log likelihood = -81712.268  
-Iteration 4:   log likelihood = -81712.268  
+Iteration 0:   log likelihood = -1016.4653  
+Iteration 1:   log likelihood = -896.62411  
+Iteration 2:   log likelihood = -895.06707  
+Iteration 3:   log likelihood = -895.06488  
+Iteration 4:   log likelihood = -895.06488  
 
-Probit regression                                 Number of obs   =     141203
-                                                  LR chi2(1)      =   22207.23
+Probit regression                                 Number of obs   =       1565
+                                                  LR chi2(1)      =     242.80
                                                   Prob > chi2     =     0.0000
-Log likelihood = -81712.268                       Pseudo R2       =     0.1196
+Log likelihood = -895.06488                       Pseudo R2       =     0.1194
 
 --------------------------------------------------------------------------------
     has_either |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
 ---------------+----------------------------------------------------------------
-precon_overlap |  -.0307723   .0002275  -135.26   0.000    -.0312182   -.0303264
-         _cons |   .5070334   .0068623    73.89   0.000     .4935834    .5204833
+precon_overlap |  -.0303576    .002148   -14.13   0.000    -.0345676   -.0261477
+         _cons |   .4700231   .0654575     7.18   0.000     .3417287    .5983175
 --------------------------------------------------------------------------------
 
-Iteration 0:   log likelihood = -64758.864  
-Iteration 1:   log likelihood = -55621.397  
-Iteration 2:   log likelihood = -55515.292  
-Iteration 3:   log likelihood = -55515.147  
-Iteration 4:   log likelihood = -55515.147  
+Iteration 0:   log likelihood = -700.10294  
+Iteration 1:   log likelihood = -602.56889  
+Iteration 2:   log likelihood = -601.38174  
+Iteration 3:   log likelihood = -601.38008  
+Iteration 4:   log likelihood = -601.38008  
 
-Probit regression                                 Number of obs   =      98962
-                                                  LR chi2(1)      =   18487.43
+Probit regression                                 Number of obs   =       1082
+                                                  LR chi2(1)      =     197.45
                                                   Prob > chi2     =     0.0000
-Log likelihood = -55515.147                       Pseudo R2       =     0.1427
+Log likelihood = -601.38008                       Pseudo R2       =     0.1410
 
 --------------------------------------------------------------------------------
     has_either |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
 ---------------+----------------------------------------------------------------
-precon_overlap |  -.0336296   .0002727  -123.33   0.000    -.0341641   -.0330952
-         _cons |   .8058595    .009935    81.11   0.000     .7863872    .8253319
+precon_overlap |  -.0331045   .0025963   -12.75   0.000    -.0381932   -.0280159
+         _cons |   .7638314   .0951777     8.03   0.000     .5772865    .9503763
 --------------------------------------------------------------------------------
 
-Iteration 0:   log likelihood = -29937.688  
-Iteration 1:   log likelihood = -27763.514  
-Iteration 2:   log likelihood = -27739.925  
-Iteration 3:   log likelihood = -27739.918  
-Iteration 4:   log likelihood = -27739.918  
+Iteration 0:   log likelihood = -339.21055  
+Iteration 1:   log likelihood = -314.84252  
+Iteration 2:   log likelihood = -314.56434  
+Iteration 3:   log likelihood = -314.56425  
+Iteration 4:   log likelihood = -314.56425  
 
-Probit regression                                 Number of obs   =      54011
-                                                  LR chi2(1)      =    4395.54
+Probit regression                                 Number of obs   =        623
+                                                  LR chi2(1)      =      49.29
                                                   Prob > chi2     =     0.0000
-Log likelihood = -27739.918                       Pseudo R2       =     0.0734
+Log likelihood = -314.56425                       Pseudo R2       =     0.0727
 
 --------------------------------------------------------------------------------
     has_either |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
 ---------------+----------------------------------------------------------------
-precon_overlap |  -.0230542   .0003727   -61.86   0.000    -.0237846   -.0223237
-         _cons |   .0485783   .0128922     3.77   0.000       .02331    .0738466
+precon_overlap |   -.022784   .0034803    -6.55   0.000    -.0296052   -.0159628
+         _cons |   .0149678   .1206634     0.12   0.901    -.2215282    .2514637
 --------------------------------------------------------------------------------
 
-Iteration 0:   log likelihood =  -31741.72  
-Iteration 1:   log likelihood = -28227.586  
-Iteration 2:   log likelihood =  -28166.22  
-Iteration 3:   log likelihood = -28166.066  
-Iteration 4:   log likelihood = -28166.066  
+Iteration 0:   log likelihood = -349.23959  
+Iteration 1:   log likelihood = -313.15112  
+Iteration 2:   log likelihood = -312.56613  
+Iteration 3:   log likelihood = -312.56496  
+Iteration 4:   log likelihood = -312.56496  
 
-Probit regression                                 Number of obs   =      49538
-                                                  LR chi2(1)      =    7151.31
+Probit regression                                 Number of obs   =        552
+                                                  LR chi2(1)      =      73.35
                                                   Prob > chi2     =     0.0000
-Log likelihood = -28166.066                       Pseudo R2       =     0.1126
+Log likelihood = -312.56496                       Pseudo R2       =     0.1050
 
 --------------------------------------------------------------------------------
     has_either |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
 ---------------+----------------------------------------------------------------
-precon_overlap |  -.0291432   .0003853   -75.64   0.000    -.0298984    -.028388
-         _cons |   .4689985   .0124492    37.67   0.000     .4445986    .4933984
+precon_overlap |   -.027711   .0035961    -7.71   0.000    -.0347593   -.0206628
+         _cons |    .395658   .1169144     3.38   0.001       .16651     .624806
 --------------------------------------------------------------------------------
 
-Iteration 0:   log likelihood = -48900.867  
-Iteration 1:   log likelihood = -41198.154  
-Iteration 2:   log likelihood = -41038.714  
-Iteration 3:   log likelihood = -41038.706  
-Iteration 4:   log likelihood = -41038.706  
+Iteration 0:   log likelihood = -544.24979  
+Iteration 1:   log likelihood = -461.30714  
+Iteration 2:   log likelihood =  -459.4444  
+Iteration 3:   log likelihood = -459.44433  
+Iteration 4:   log likelihood = -459.44433  
 
-Probit regression                                 Number of obs   =      72723
-                                                  LR chi2(1)      =   15724.32
+Probit regression                                 Number of obs   =        818
+                                                  LR chi2(1)      =     169.61
                                                   Prob > chi2     =     0.0000
-Log likelihood = -41038.706                       Pseudo R2       =     0.1608
+Log likelihood = -459.44433                       Pseudo R2       =     0.1558
 
 --------------------------------------------------------------------------------
     has_either |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
 ---------------+----------------------------------------------------------------
-precon_overlap |  -.0373541   .0003469  -107.68   0.000    -.0380341   -.0366742
-         _cons |   .7592554   .0099831    76.05   0.000     .7396888     .778822
+precon_overlap |  -.0361301   .0032172   -11.23   0.000    -.0424357   -.0298245
+         _cons |   .6977567   .0938599     7.43   0.000     .5137947    .8817188
 --------------------------------------------------------------------------------
 
 . 
@@ -408,24 +409,24 @@ precon_overlap |  -.0373541   .0003469  -107.68   0.000    -.0380341   -.0366742
 . bysort precon_overlap : egen avg_has_either = mean(has_either)
 (2 missing values generated)
 
-. probit has_either precon_overlap
+. probit has_either precon_overlap if firstobs_deck
 
-Iteration 0:   log likelihood = -270099.19  
-Iteration 1:   log likelihood = -236880.25  
-Iteration 2:   log likelihood = -236425.23  
-Iteration 3:   log likelihood =  -236424.5  
-Iteration 4:   log likelihood =  -236424.5  
+Iteration 0:   log likelihood = -2970.0059  
+Iteration 1:   log likelihood = -2612.6328  
+Iteration 2:   log likelihood = -2607.5827  
+Iteration 3:   log likelihood = -2607.5747  
+Iteration 4:   log likelihood = -2607.5747  
 
-Probit regression                                 Number of obs   =     416437
-                                                  LR chi2(1)      =   67349.37
+Probit regression                                 Number of obs   =       4640
+                                                  LR chi2(1)      =     724.86
                                                   Prob > chi2     =     0.0000
-Log likelihood =  -236424.5                       Pseudo R2       =     0.1247
+Log likelihood = -2607.5747                       Pseudo R2       =     0.1220
 
 --------------------------------------------------------------------------------
     has_either |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
 ---------------+----------------------------------------------------------------
-precon_overlap |  -.0308894   .0001316  -234.80   0.000    -.0311472   -.0306315
-         _cons |   .5472509   .0042524   128.69   0.000     .5389164    .5555853
+precon_overlap |  -.0302184   .0012395   -24.38   0.000    -.0326477    -.027789
+         _cons |   .4989266    .040361    12.36   0.000     .4198204    .5780327
 --------------------------------------------------------------------------------
 
 . predict est_has_either
@@ -436,24 +437,24 @@ precon_overlap |  -.0308894   .0001316  -234.80   0.000    -.0311472   -.0306315
 . bysort precon_overlap : egen avg_has_both = mean(has_both)
 (2 missing values generated)
 
-. probit has_both precon_overlap
+. probit has_both precon_overlap if firstobs_deck
 
-Iteration 0:   log likelihood =  -200687.3  
-Iteration 1:   log likelihood = -174137.58  
-Iteration 2:   log likelihood = -172837.53  
-Iteration 3:   log likelihood = -172834.81  
-Iteration 4:   log likelihood = -172834.81  
+Iteration 0:   log likelihood = -2174.7825  
+Iteration 1:   log likelihood =  -1892.155  
+Iteration 2:   log likelihood = -1877.7139  
+Iteration 3:   log likelihood = -1877.6837  
+Iteration 4:   log likelihood = -1877.6837  
 
-Probit regression                                 Number of obs   =     416437
-                                                  LR chi2(1)      =   55704.98
+Probit regression                                 Number of obs   =       4640
+                                                  LR chi2(1)      =     594.20
                                                   Prob > chi2     =     0.0000
-Log likelihood = -172834.81                       Pseudo R2       =     0.1388
+Log likelihood = -1877.6837                       Pseudo R2       =     0.1366
 
 --------------------------------------------------------------------------------
       has_both |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
 ---------------+----------------------------------------------------------------
-precon_overlap |  -.0355868   .0001791  -198.67   0.000    -.0359378   -.0352357
-         _cons |   .0772699   .0049019    15.76   0.000     .0676624    .0868774
+precon_overlap |  -.0348058   .0016951   -20.53   0.000    -.0381281   -.0314835
+         _cons |   .0320096    .046779     0.68   0.494    -.0596756    .1236948
 --------------------------------------------------------------------------------
 
 . predict est_has_both
@@ -652,47 +653,47 @@ end of do-file
 
 . 
 . /* Estimated probabilities of having either or both */
-. probit has_either logprice
+. probit has_either logprice if firstobs_deck
 
-Iteration 0:   log likelihood = -270099.19  
-Iteration 1:   log likelihood = -232179.32  
-Iteration 2:   log likelihood = -232059.18  
-Iteration 3:   log likelihood = -232059.17  
+Iteration 0:   log likelihood = -2970.0059  
+Iteration 1:   log likelihood = -2543.2879  
+Iteration 2:   log likelihood = -2541.6882  
+Iteration 3:   log likelihood =  -2541.688  
 
-Probit regression                                 Number of obs   =     416437
-                                                  LR chi2(1)      =   76080.03
+Probit regression                                 Number of obs   =       4640
+                                                  LR chi2(1)      =     856.64
                                                   Prob > chi2     =     0.0000
-Log likelihood = -232059.17                       Pseudo R2       =     0.1408
+Log likelihood =  -2541.688                       Pseudo R2       =     0.1442
 
 ------------------------------------------------------------------------------
   has_either |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
 -------------+----------------------------------------------------------------
-    logprice |   1.367114   .0052945   258.21   0.000     1.356737    1.377492
-       _cons |  -3.943454   .0140898  -279.88   0.000     -3.97107   -3.915838
+    logprice |   1.391392   .0508768    27.35   0.000     1.291675    1.491109
+       _cons |  -4.022846    .134749   -29.85   0.000    -4.286949   -3.758742
 ------------------------------------------------------------------------------
 
 . predict est_has_either
 (option pr assumed; Pr(has_either))
 
 . 
-. probit has_both logprice
+. probit has_both logprice if firstobs_deck
 
-Iteration 0:   log likelihood =  -200687.3  
-Iteration 1:   log likelihood = -170814.71  
-Iteration 2:   log likelihood = -170309.52  
-Iteration 3:   log likelihood = -170309.01  
-Iteration 4:   log likelihood = -170309.01  
+Iteration 0:   log likelihood = -2174.7825  
+Iteration 1:   log likelihood = -1846.0377  
+Iteration 2:   log likelihood = -1840.0299  
+Iteration 3:   log likelihood = -1840.0229  
+Iteration 4:   log likelihood = -1840.0229  
 
-Probit regression                                 Number of obs   =     416437
-                                                  LR chi2(1)      =   60756.57
+Probit regression                                 Number of obs   =       4640
+                                                  LR chi2(1)      =     669.52
                                                   Prob > chi2     =     0.0000
-Log likelihood = -170309.01                       Pseudo R2       =     0.1514
+Log likelihood = -1840.0229                       Pseudo R2       =     0.1539
 
 ------------------------------------------------------------------------------
     has_both |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
 -------------+----------------------------------------------------------------
-    logprice |   1.363736   .0059686   228.48   0.000     1.352038    1.375435
-       _cons |   -4.52896   .0164635  -275.09   0.000    -4.561228   -4.496692
+    logprice |   1.377975   .0575271    23.95   0.000     1.265224    1.490726
+       _cons |  -4.580034   .1579544   -29.00   0.000    -4.889619   -4.270449
 ------------------------------------------------------------------------------
 
 . predict est_has_both
@@ -962,7 +963,7 @@ end of do-file
       name:  degeneracy
        log:  C:/Users/Daniel/Documents/Stata/C16 Analysis/output/degeneracy.txt
   log type:  text
- opened on:  27 May 2019, 14:56:42
+ opened on:  27 May 2019, 16:16:54
 
 . 
 . table degenerate commander if firstobs_deck, ///
@@ -999,7 +1000,7 @@ e         |       atraxa         breya       kynaios        saskia        yidris
       name:  degeneracy
        log:  C:/Users/Daniel/Documents/Stata/C16 Analysis/output/degeneracy.txt
   log type:  text
- closed on:  27 May 2019, 14:56:42
+ closed on:  27 May 2019, 16:16:54
 --------------------------------------------------------------------------------------------------------------
 
 . 

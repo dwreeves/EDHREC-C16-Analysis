@@ -2,7 +2,7 @@
       name:  degeneracy
        log:  C:/Users/Daniel/Documents/Stata/C16 Analysis/output/degeneracy.txt
   log type:  text
- opened on:  27 May 2019, 14:56:42
+ opened on:  27 May 2019, 16:16:54
 
 . 
 . table degenerate commander if firstobs_deck, ///
@@ -39,5 +39,5 @@ e         |       atraxa         breya       kynaios        saskia        yidris
       name:  degeneracy
        log:  C:/Users/Daniel/Documents/Stata/C16 Analysis/output/degeneracy.txt
   log type:  text
- closed on:  27 May 2019, 14:56:42
+ closed on:  27 May 2019, 16:16:54
 --------------------------------------------------------------------------------------------------------------

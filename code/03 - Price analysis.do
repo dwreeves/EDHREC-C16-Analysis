@@ -23,10 +23,10 @@ sum totalprice if firstobs_deck & commander=="saskia", detail
 sum totalprice if firstobs_deck & commander=="yidris", detail
 
 /* Estimated probabilities of having either or both */
-probit has_either logprice
+probit has_either logprice if firstobs_deck
 predict est_has_either
 
-probit has_both logprice
+probit has_both logprice if firstobs_deck
 predict est_has_both
 
 /*******************************************************************************
